@@ -4,6 +4,10 @@
 #include <iostream>
 #include "pthread.h"
 
+/**
+ * @brief logger mutex singleton class. 
+ * 
+ */
 class LoggerMutex
 {
 public:

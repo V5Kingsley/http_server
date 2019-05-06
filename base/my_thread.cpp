@@ -3,8 +3,12 @@
 namespace my_thread
 {
 
-boost::atomic_int Thread::thread_num(0);
+boost::atomic_int Thread::thread_num(0); // Record the number of threads created.
 
+/**
+ * @brief Must be called after the thread class is built. Otherwise the new thread will not be created.
+ * 
+ */
 void Thread::start()
 {
   if (!started_)

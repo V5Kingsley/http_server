@@ -16,7 +16,11 @@ void* thread_func(void* arg)
   CLASSTYPE::thread_num--;
   return NULL;
 }
-  
+
+/**
+ * @brief Thread class which imitates the std::thread
+ * 
+ */
 class Thread
 {
 public:
