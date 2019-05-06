@@ -2,6 +2,7 @@
 #include <thread>
 
 //#define LOGGER_DEBUG
+#define LOGGER_WARN
 #include <logger.h>
 
 namespace http_server
@@ -20,6 +21,10 @@ ThreadPool::ThreadPool(parameters::Parameters *pool_parameters)
   max_work_num_ = pool_parameters_->getMaxWorkNum();
 }
 
+/**
+ * @brief Start the pool. Set up the work threads.
+ * 
+ */
 void ThreadPool::start()
 {
   assert(!started);
@@ -49,6 +54,11 @@ void ThreadPool::start()
   INFO("Thread pool is ready to work.\n");  
 }
 
+/**
+ * @brief Get the next work thread to assign task by round-robin algorithm
+ * 
+ * @return work_thread::WorkThread* 
+ */
 work_thread::WorkThread* ThreadPool::get_next_work_thread()
 {
   work_thread::WorkThread* next_work_thread;
@@ -61,7 +71,11 @@ work_thread::WorkThread* ThreadPool::get_next_work_thread()
   return next_work_thread;
 }
 
-
+/**
+ * @brief Work thread function. Get work from queue to execute.
+ * 
+ * @param index Work thread index in vector.
+ */
 void ThreadPool::thread_routine(int index)
 {
   //pthread_detach(pthread_self());
@@ -96,6 +110,10 @@ void ThreadPool::thread_routine(int index)
   }
 }
 
+/**
+ * @brief Distribute task to work thread with round-robin algorithm.
+ * 
+ */
 void ThreadPool::distribute_task()
 {
   //pthread_detach(pthread_self());
@@ -105,6 +123,7 @@ void ThreadPool::distribute_task()
   {
     sem_wait(&task_num_);
     work_thread::WorkThread* selected_thread = get_next_work_thread();
+    assert(!pool_work_queue_.empty());
     work_thread::Work::WorkPtr work_to_past = pool_work_queue_.pop_work();
     selected_thread->add_work(work_to_past);
     {
@@ -119,12 +138,17 @@ void ThreadPool::distribute_task()
   }
 }
 
-
+/**
+ * @brief Add task to queue. Controled by Semaphore.
+ * 
+ * @param new_task 
+ * @return status 
+ */
 status ThreadPool::add_task_to_pool(TaskFunc new_task)
 {
   if(pool_work_queue_.size() > max_work_num_)
   {
-    DEBUG("Thread pool is busy. queue size: %d", pool_work_queue_.size());
+    WARN("Thread pool is busy. queue size: %d", pool_work_queue_.size());
     return FAILED;
   }
   std::shared_ptr<work_thread::Work> new_work = work_thread::Work::create_work(new_task);

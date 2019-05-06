@@ -70,6 +70,9 @@ Parameters::Parameters(int argc, char *argv[])
       }
     }
   }
+  char path[BUFSIZ];
+  sprintf(path, "%s%s%s", document_root_, "/", default_file_);
+  file_lists_.push_back(path);
 }
 
 void Parameters::displayConfig()

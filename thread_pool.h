@@ -10,8 +10,6 @@
 namespace http_server
 {
 
-enum status{SUCCESS, FAILED};
-
 class ThreadPool : boost::noncopyable
 {
 typedef std::function<void ()> TaskFunc;

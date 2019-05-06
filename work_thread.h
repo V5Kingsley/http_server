@@ -33,6 +33,8 @@ public:
   { 
   }
 
+  Work(){}
+
   void execute_work();
 
   static WorkPtr create_work(work_func work)

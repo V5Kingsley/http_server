@@ -1,7 +1,7 @@
 /**
  * @file work_queue.h
  * @author Kingsley
- * @brief 线程安全队列
+ * @brief Thread safety queue
  * @version 0.1
  * @date 2019-04-28
  * 
@@ -29,7 +29,7 @@ private:
   work_node<T> *head_node;
   work_node<T> *cur;
   MutexLock mutex;
-  boost::atomic_int queue_size_;
+  boost::atomic_int queue_size_; // Record the queue size. Can be replaced to int.
 
 public:
   WorkQueue() : queue_size_(0)
@@ -72,6 +72,11 @@ public:
     delete temp;
   }*/
 
+/**
+ * @brief Return the top work in queue and pop it.
+ * 
+ * @return T 
+ */
   T pop_work()
   {
     MutexLockGuard mlg(mutex);

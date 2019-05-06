@@ -2,9 +2,14 @@
 #define PARAMETERS_H_
 
 #include <getopt.h>
+#include <vector>
+#include <string>
 
 namespace http_server
 {
+
+enum status{SUCCESS, FAILED};
+#define SERVER_STRING "Server:A http server by Kingsley\r\n"
 
 namespace parameters
 {
@@ -44,6 +49,12 @@ public:
 
   int getMaxWorkNum() { return max_work_num_; }
 
+  char* getDocumentRoot() { return document_root_; }
+
+  char* getDefaultFile() { return default_file_; }
+
+  std::vector<std::string> getHttpFileLists() { return file_lists_; }
+
 private:
   char CGI_root_[MAX_FILE_LINE];
   char default_file_[MAX_FILE_LINE];
@@ -54,6 +65,7 @@ private:
   int time_out_;
   int init_worker_num_;
   int max_work_num_;
+  std::vector<std::string> file_lists_;
 };
 }
 } // namespace http_server
