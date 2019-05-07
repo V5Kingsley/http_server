@@ -33,7 +33,7 @@ static struct option long_cmd_opt[] = {
     {"MaxClient", required_argument, nullptr, 'm'},
     {"TimeOut", required_argument, nullptr, 't'},
     {"InitWorkerNum", required_argument, nullptr, 'i'},
-    {"tMaxWorkNum", required_argument, nullptr, 'w'},
+    {"MaxWorkNum", required_argument, nullptr, 'w'},
     {"help", no_argument, nullptr, 'h'},
 };
 

@@ -10,6 +10,5 @@ int main(int argc, char *argv[])
   pool.start();
   http_server::TcpEpollServer server(&pool, &parameters);
   server.handle_request();
-
-  sleep(5);
+  pool.close_pool();
 }

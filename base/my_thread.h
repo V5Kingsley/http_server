@@ -46,7 +46,7 @@ public:
 
   void detach();
 
-  ~Thread(){ printf("thread exit. thread id: %lu\n", id_); }
+  ~Thread(){}
 
   ThreadFunc func_;
 

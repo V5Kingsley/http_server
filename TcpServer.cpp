@@ -20,7 +20,7 @@ TcpServer::TcpServer(ThreadPool* thread_pool, int listen_port)
  * 
  * @param new_job 
  */
-void TcpServer::add_task_to_pool(std::function<void ()> new_job)
+status TcpServer::add_task_to_pool(std::function<void ()> new_job)
 {
   thread_pool_->add_task_to_pool(new_job);
 }

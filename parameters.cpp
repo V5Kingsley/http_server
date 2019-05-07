@@ -62,6 +62,11 @@ Parameters::Parameters(int argc, char *argv[])
         printf("set InitWorkerNum: %d\n", value);
         init_worker_num_ = value;
         break;
+      case 'w':
+        value = atoi(optarg);
+        printf("set MaxWorkerNum: %d\n", value);
+        max_work_num_ = value;
+        break;
       case 'h':
         printf("help test");
         break;
@@ -77,13 +82,13 @@ Parameters::Parameters(int argc, char *argv[])
 
 void Parameters::displayConfig()
 {
-  printf("http sever CGIRoot: %s\n", CGI_root_);
+  //printf("http sever CGIRoot: %s\n", CGI_root_);
   printf("http sever DefaultFile: %s\n", default_file_);
   printf("http sever DocumentRoot: %s\n", document_root_);
-  printf("http sever ConfigFile: %s\n", config_file_);
+  //printf("http sever ConfigFile: %s\n", config_file_);
   printf("http sever ListenPort: %d\n", listen_port_);
-  printf("http sever MaxClient: %d\n", max_client_);
-  printf("http sever TimeOut: %d\n", time_out_);
+  //printf("http sever MaxClient: %d\n", max_client_);
+  //printf("http sever TimeOut: %d\n", time_out_);
   printf("http sever InitWorkerNum: %d\n", init_worker_num_);
   printf("http server MaxWorkNum: %d\n", max_work_num_);
 }

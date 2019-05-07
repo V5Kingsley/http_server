@@ -1,12 +1,14 @@
 #include "TcpEpollServer.h"
-#include <signal.h>
-#include <sys/epoll.h>
-#include <assert.h>
-#include <sys/socket.h>
 #include "parameters.h"
-#include <string.h>
-#include <sys/stat.h>
 #include <algorithm>
+#include <assert.h>
+#include <signal.h>
+#include <string.h>
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/timerfd.h>
 
 //#define LOGGER_DEBUG
 #define LOGGER_WARN
@@ -26,7 +28,11 @@ TcpEpollServer::TcpEpollServer(ThreadPool *pool, parameters::Parameters *paramet
   document_root_ = parameters->getDocumentRoot();
   default_file_ = parameters->getDefaultFile();
   file_mmap();
+ // efd_ = eventfd(0, 0);
+  assert(efd_ != -1);
 }
+
+int TcpEpollServer::efd_ = eventfd(0, 0);
 
 /**
  * @brief Map the file to memory.
@@ -73,7 +79,11 @@ TcpEpollServer::~TcpEpollServer()
 
 void TcpEpollServer::sig_int_handle(int sig)
 {
-  //INFO("catch sigint signal\n");
+  uint64_t u = 1;
+  ssize_t rc;
+  rc = write(efd_, &u, sizeof(uint64_t));
+  if(rc != sizeof(uint64_t))
+    WARN("sig int eventfd write error");
 }
 
 /**
@@ -111,6 +121,9 @@ void TcpEpollServer::del_event(int fd, int event_type)
  */
 void TcpEpollServer::close_client(int fd)
 {
+  client_timers_queue_.del_timer(client_fd_array_[fd]);
+  delete client_fd_array_[fd];
+  client_fd_array_[fd] = nullptr;
   close(fd);
 }
 
@@ -191,6 +204,7 @@ void TcpEpollServer::client_service(int client_fd)
 	else if(strcasecmp(method, "POST") == 0)
 	{
 		//call POST function
+    close_client(client_fd);
 	}
 
 }
@@ -202,7 +216,7 @@ void TcpEpollServer::client_service(int client_fd)
 void TcpEpollServer::handle_request()
 {
   signal(SIGPIPE, SIG_IGN);  // ignore sigpipe
-  //signal(SIGINT, sig_int_handle);
+  signal(SIGINT, sig_int_handle);
 
   if(socket_->fd() == -1)
   {
@@ -213,7 +227,23 @@ void TcpEpollServer::handle_request()
   epoll_fd_ = epoll_create(5);
   assert(epoll_fd_ != -1);
 
+  int time_fd = timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK);
+  assert(time_fd != -1);
+  struct itimerspec new_value;
+  struct timespec now;
+  uint64_t exp;
+  ssize_t s;
+  assert(clock_gettime(CLOCK_REALTIME, &now) != -1);
+  new_value.it_value.tv_sec = 2;
+  new_value.it_value.tv_nsec = now.tv_nsec;
+  new_value.it_interval.tv_sec = 2;
+  new_value.it_interval.tv_nsec = 0;
+  assert(timerfd_settime(time_fd, 0, &new_value, NULL) != -1);
+  bool timer_tick = false;
+
   add_event(socket_->fd(), EPOLLIN);
+  add_event(efd_, EPOLLIN);
+  add_event(time_fd, EPOLLIN);
 
   int overtime_ms = -1;
   bool run = true;
@@ -232,26 +262,76 @@ void TcpEpollServer::handle_request()
       if(events[i].data.fd == socket_->fd())   // a new client
       {
         int client_fd = socket_->accept();
+        if(client_fd == -1)
+        {
+          continue;
+        }
         setNoBlock(client_fd);
-        add_event(client_fd, EPOLLIN);
+        
+        add_event(client_fd, EPOLLIN); 
+        
+        timer_tick::Timer *new_timer = new timer_tick::Timer(
+          client_fd, std::bind(&TcpEpollServer::client_overtime_cb, this, std::placeholders::_1), time(NULL) + CLIENT_LIFE_TIME);
+        assert(client_fd < MAX_FD);
+        client_fd_array_[client_fd] = new_timer;
+        client_timers_queue_.add_timer(new_timer);
+
         DEBUG("accept a new client[%d]\n", client_fd);
+      }
+      else if(events[i].data.fd == time_fd)
+      {
+        s = read(time_fd, &exp, sizeof(uint64_t));
+        assert(s == sizeof(uint64_t));
+        timer_tick = true;
+        DEBUG("timer tick!!!\n");
+      }
+      else if((events[i].data.fd == efd_ ) && (events[i].events & EPOLLIN)) 
+      {
+        INFO("Got a sigint signal. Exiting...\n");
+        run = false;
       }
       else if(events[i].events & EPOLLIN) // a client send request
       {
         DEBUG("receive a request from client[%d]\n", events[i].data.fd);
-        add_task_to_pool(std::bind(&TcpEpollServer::client_service, this, static_cast<int>(events[i].data.fd)));
+        status r = 
+          add_task_to_pool(std::bind(
+            &TcpEpollServer::client_service, this, static_cast<int>(events[i].data.fd)));
+        /*if(r == FAILED)
+        {
+          continue;  // How to handle overflowed task?
+        }*/
         del_event(events[i].data.fd, EPOLLIN);
       }
       else if(events[i].events & EPOLLRDHUP) // a client close the fd
       {
         DEBUG("EPOLLRDHUP!\n");
-        close(events[i].data.fd);
+        close_client(events[i].data.fd);
         del_event(events[i].data.fd, EPOLLIN);
       }
       else
       {
         WARN("unexpected things happened! \n");
       }
+    }
+
+    if(timer_tick)
+    {
+      time_t current_time = time(NULL);
+      
+      while(!client_timers_queue_.empty())
+      {
+        timer_tick::Timer* top_timer = client_timers_queue_.top();
+        if(top_timer->overtime() < current_time)
+        {
+          top_timer->overtime_callback(top_timer);
+        }
+        else
+        {
+          break;
+        }   
+      }
+
+      DEBUG("client queue size: %d\n", client_timers_queue_.size());
 
     }
   }
@@ -438,7 +518,7 @@ void TcpEpollServer::file_serve(int client_fd, char * filename)
   {
     WARN("can not open the file: %s\n", filename);
     not_found(client_fd);
-    close(client_fd);
+    close_client(client_fd);
     return;
   }
   else
@@ -479,6 +559,11 @@ void TcpEpollServer::headers(int client)
 void TcpEpollServer::send_file(int client, std::string filename)
 {
   send(client, http_file_[filename], strlen(http_file_[filename]), MSG_NOSIGNAL);
+}
+
+void TcpEpollServer::client_overtime_cb(timer_tick::Timer* overtime_timer)
+{
+  close_client(overtime_timer->fd());
 }
 
 } // namespace http_server

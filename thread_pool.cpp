@@ -1,5 +1,5 @@
 #include "thread_pool.h"
-#include <thread>
+#include <signal.h>
 
 //#define LOGGER_DEBUG
 #define LOGGER_WARN
@@ -7,6 +7,8 @@
 
 namespace http_server
 {
+
+static struct timeval delay = {0, 2}; 
 
 ThreadPool::ThreadPool(parameters::Parameters *pool_parameters)
   : next_(0),
@@ -34,9 +36,6 @@ void ThreadPool::start()
 
   started = true;
 
-  distribute_thread_ = std::shared_ptr<my_thread::Thread>(new my_thread::Thread(std::bind(&ThreadPool::distribute_task, this)));
-  distribute_thread_->start();
-
   pthread_barrier_init(&pool_barrier_, NULL, threads_num_ + 1);
 
   for(int i = 0; i < threads_num_; ++i)
@@ -50,7 +49,12 @@ void ThreadPool::start()
   }
 
   pool_activate = true;
+
+  distribute_thread_ = std::shared_ptr<my_thread::Thread>(new my_thread::Thread(std::bind(&ThreadPool::distribute_task, this)));
+  distribute_thread_->start();
+
   pthread_barrier_wait(&pool_barrier_);
+
   INFO("Thread pool is ready to work.\n");  
 }
 
@@ -78,7 +82,7 @@ work_thread::WorkThread* ThreadPool::get_next_work_thread()
  */
 void ThreadPool::thread_routine(int index)
 {
-  //pthread_detach(pthread_self());
+  pthread_detach(pthread_self());
   INFO("Generated a work thread. thread id: %lu\n", pthread_self())
 
   assert(index < work_threads_.size());
@@ -102,12 +106,15 @@ void ThreadPool::thread_routine(int index)
       }
       this_work_thread->get_condition().wait();
     }
+    if(pool_activate == false)
+      break;
     while(!this_work_thread->work_empty())
     {
       DEBUG("get a job. thread id: %lu\n", pthread_self());
       (this_work_thread->pop_work())->execute_work();
     }
   }
+  INFO("Work thread %d exits.\n", index + 1);
 }
 
 /**
@@ -116,12 +123,14 @@ void ThreadPool::thread_routine(int index)
  */
 void ThreadPool::distribute_task()
 {
-  //pthread_detach(pthread_self());
+  pthread_detach(pthread_self());
   INFO("distribute_task function started. thread id: %lu\n", pthread_self())
 
-  while(1)
+  while(pool_activate)
   {
     sem_wait(&task_num_);
+    if(pool_activate != true)
+      break;
     work_thread::WorkThread* selected_thread = get_next_work_thread();
     assert(!pool_work_queue_.empty());
     work_thread::Work::WorkPtr work_to_past = pool_work_queue_.pop_work();
@@ -134,8 +143,8 @@ void ThreadPool::distribute_task()
         selected_thread->get_condition().notify();
       }
     }
-
   }
+  INFO("Distrubute task thread exits.\n");
 }
 
 /**
@@ -148,15 +157,35 @@ status ThreadPool::add_task_to_pool(TaskFunc new_task)
 {
   if(pool_work_queue_.size() > max_work_num_)
   {
-    WARN("Thread pool is busy. queue size: %d", pool_work_queue_.size());
+    WARN("Thread pool is busy. queue size: %d\n", pool_work_queue_.size());
     return FAILED;
   }
   std::shared_ptr<work_thread::Work> new_work = work_thread::Work::create_work(new_task);
   pool_work_queue_.push_work(new_work);
-  my_mutex::MutexLockGuard mlg(pool_mutex_);
+  //my_mutex::MutexLockGuard mlg(pool_mutex_);
   sem_post(&task_num_);
   return SUCCESS;
 }
 
+void ThreadPool::close_pool()
+{
+  pool_activate = false;
+  sem_post(&task_num_);
+  while(pthread_kill(distribute_thread_->thread_id(), 0) == 0)
+  {
+    select(0, NULL, NULL, NULL, &delay);
+  }
+  sem_destroy(&task_num_);
+
+  for (int i = 0; i < work_threads_.size(); ++i)
+  {
+    while (pthread_kill(work_threads_[i]->work_thread_id(), 0) == 0)
+    {
+      work_threads_[i]->get_condition().notify();
+      select(0, NULL, NULL, NULL, &delay);
+    }
+  }
+  INFO("Thread pool is closed successfully.\n");
+}
 
 } // namespace http_server

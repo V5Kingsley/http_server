@@ -26,7 +26,7 @@ public:
   work_thread::WorkThread* get_next_work_thread();
 
   ~ThreadPool()
-  { // Don't delete pool, it's stack variable 
+  { 
     for(int i = 0; i < work_threads_.size(); ++i)
     {
       delete work_threads_[i];
@@ -34,6 +34,8 @@ public:
   }
 
   status add_task_to_pool(TaskFunc new_task);
+
+  void close_pool();
 
 private:
   std::vector<work_thread::WorkThread*> work_threads_;

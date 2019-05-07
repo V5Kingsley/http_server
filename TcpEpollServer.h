@@ -7,9 +7,20 @@
 #include <sys/mman.h>
 #include <map>
 #include <string>
+#include <queue>
+#include <timer_tick.h>
+#include <timer_queue.h>
 
 namespace http_server
 {
+struct Compare_timer
+{
+  bool operator()(std::shared_ptr<timer_tick::Timer> a, std::shared_ptr<timer_tick::Timer> b)
+  {
+    return a->overtime() > b->overtime();
+  }
+};
+
 class ThreadPool;
 
 class TcpEpollServer : public TcpServer
@@ -41,11 +52,14 @@ public:
   void file_serve(int client_fd, char * filename);
   void headers(int client);
   void send_file(int client, std::string filename);
+  void client_overtime_cb(timer_tick::Timer* overtime_timer);
 
   static const int MAXEVENTS = 255;
   static const int METHOD_LEN = 255;
   static const int URL_LEN = 255;
   static const int VERSION_LEN = 50;
+  static const int CLIENT_LIFE_TIME = 5;
+  static const int MAX_FD = 10000;
 
 private:
   int epoll_fd_;
@@ -55,6 +69,14 @@ private:
 
   std::map<std::string, char*> http_file_;  // http files paths and corresponding mmap addr.
   std::vector<int> file_fd_lists_; // http files fd.
+
+  static int efd_; // event_fd
+
+  timer_tick::TimerQueue client_timers_queue_;
+  timer_tick::Timer* client_fd_array_[MAX_FD];
+
+  
+
 };
 
 
