@@ -1,9 +1,9 @@
 /**
  * @file work_queue.h
  * @author Kingsley
- * @brief Thread safety queue
+ * @brief Work Queue For Thread Safety
  * @version 0.1
- * @date 2019-04-28
+ * @date 2019-05-08
  * 
  * @copyright Copyright (c) 2019
  * 

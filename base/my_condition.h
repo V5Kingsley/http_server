@@ -1,3 +1,13 @@
+/**
+ * @file my_condition.h
+ * @author Kingsley
+ * @brief RAII Condition
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef MY_CONDITION_H_
 #define MY_CONDITION_H_
 

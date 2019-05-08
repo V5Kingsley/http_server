@@ -1,3 +1,13 @@
+/**
+ * @file timer_queue.h
+ * @author Kingsley
+ * @brief timer queue for thread safety
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef TIMER_QUEUE_H_
 #define TIMER_QUEUE_H_
 
@@ -17,6 +27,11 @@ public:
 
   ~TimerQueue(){}
 
+/**
+ * @brief Add timer to queue and set its iterator in the queue.
+ * 
+ * @param new_timer 
+ */
   void add_timer(Timer* new_timer)
   {
     my_mutex::MutexLockGuard mlg(mutex_);
@@ -40,6 +55,11 @@ public:
     new_timer->set_iter(new_iter);
   }
 
+/**
+ * @brief Delete the timer in queue with its iterator. If the timer isn't in the queue, the program will crash.
+ * 
+ * @param del_timer 
+ */
   void del_timer(Timer* del_timer)
   {
     my_mutex::MutexLockGuard mlg(mutex_);

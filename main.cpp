@@ -1,3 +1,13 @@
+/**
+ * @file main.cpp
+ * @author Kingsley
+ * @brief Http Server Main Cpp
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #include "parameters.h"
 #include "thread_pool.h"
 #include "TcpEpollServer.h"

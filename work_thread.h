@@ -1,3 +1,13 @@
+/**
+ * @file work_thread.h
+ * @author Kingsley
+ * @brief work class and work thread class
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef WORK_THREAD_H_
 #define WORK_THREAD_H_
 
@@ -22,6 +32,10 @@ enum thread_state{BOOTING, READY, IDLE, BUSY, QUIT};
 namespace work_thread
 {
 
+/**
+ * @brief work uesd to contain execute function
+ * 
+ */
 class Work
 {
 public:
@@ -50,6 +64,10 @@ private:
 
 };
 
+/**
+ * @brief work thread
+ * 
+ */
 class WorkThread : boost::noncopyable
 {
 public:

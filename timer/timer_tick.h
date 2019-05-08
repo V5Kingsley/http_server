@@ -1,3 +1,13 @@
+/**
+ * @file timer_tick.h
+ * @author Kingsley
+ * @brief Timer class. The timer contain overtime, callback function, iterator in queue and fd.
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef TIMER_TICK_H_
 #define TIMER_TICK_H_
 

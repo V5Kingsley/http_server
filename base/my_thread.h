@@ -1,3 +1,13 @@
+/**
+ * @file my_thread.h
+ * @author Kingsley
+ * @brief Thread Class Which Imitates the std::thread
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef MY_THREAD_H_
 #define MY_THREAD_H_
 

@@ -1,3 +1,14 @@
+/**
+ * @file logger.h
+ * @author Kingsley
+ * @brief logger class. INFO WARN DEBUG. 
+ *        If use WARN and DEBUG, must call #define LOGGER_WARN and #define LOGGER_DEBUG before include the file.
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef LOGGER_H_
 #define LOGGER_H_
 

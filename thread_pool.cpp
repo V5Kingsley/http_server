@@ -1,3 +1,13 @@
+/**
+ * @file thread_pool.cpp
+ * @author Kingsley
+ * @brief 
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #include "thread_pool.h"
 #include <signal.h>
 
@@ -36,7 +46,7 @@ void ThreadPool::start()
 
   started = true;
 
-  pthread_barrier_init(&pool_barrier_, NULL, threads_num_ + 1);
+  pthread_barrier_init(&pool_barrier_, NULL, threads_num_ + 1); // use barrier to synchronize all the threads.
 
   for(int i = 0; i < threads_num_; ++i)
   {
@@ -140,7 +150,7 @@ void ThreadPool::distribute_task()
       if(selected_thread->state_ == IDLE)
       {
         selected_thread->state_ = BUSY;
-        selected_thread->get_condition().notify();
+        selected_thread->get_condition().notify();  // notify the thread to execute the work
       }
     }
   }
@@ -167,11 +177,16 @@ status ThreadPool::add_task_to_pool(TaskFunc new_task)
   return SUCCESS;
 }
 
+
+/**
+ * @brief shut down all the threads.
+ * 
+ */
 void ThreadPool::close_pool()
 {
   pool_activate = false;
   sem_post(&task_num_);
-  while(pthread_kill(distribute_thread_->thread_id(), 0) == 0)
+  while(pthread_kill(distribute_thread_->thread_id(), 0) == 0)  // confirm that the thread has exited.
   {
     select(0, NULL, NULL, NULL, &delay);
   }

@@ -18,7 +18,6 @@ add_library(TcpServer TcpServer.cpp)
 add_library(TcpEpollServer TcpEpollServer.cpp)
 target_link_libraries(TcpEpollServer TcpServer)
 
-
 add_executable(httpserver main.cpp)
 target_link_libraries(httpserver TcpEpollServer Socket logger parameters thread_pool my_thread my_condition work_thread ${CMAKE_THREAD_LIBS_INIT})
 
@@ -29,5 +28,5 @@ target_link_libraries(httpserver TcpEpollServer Socket logger parameters thread_
 #add_executable(condition_test test/condition_test.cpp)
 #target_link_libraries(condition_test logger parameters thread_pool my_thread my_condition work_thread ${CMAKE_THREAD_LIBS_INIT})
 
-add_executable(timer_test test/timer_test.cpp)
+#add_executable(timer_test test/timer_test.cpp)
 

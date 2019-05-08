@@ -1,3 +1,13 @@
+/**
+ * @file Socket.h
+ * @author Kingsley
+ * @brief 
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef SOCKET_H_
 #define SOCKET_H_
 

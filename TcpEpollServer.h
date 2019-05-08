@@ -1,8 +1,17 @@
+/**
+ * @file TcpEpollServer.h
+ * @author Kingsley
+ * @brief Use epoll to handle client request.
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef TCPEPOLLSERVER_H_
 #define TCPEPOLLSERVER_H_
 #include "TcpServer.h"
 #include "parameters.h"
-
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <map>
@@ -13,13 +22,6 @@
 
 namespace http_server
 {
-struct Compare_timer
-{
-  bool operator()(std::shared_ptr<timer_tick::Timer> a, std::shared_ptr<timer_tick::Timer> b)
-  {
-    return a->overtime() > b->overtime();
-  }
-};
 
 class ThreadPool;
 
@@ -72,10 +74,8 @@ private:
 
   static int efd_; // event_fd
 
-  timer_tick::TimerQueue client_timers_queue_;
-  timer_tick::Timer* client_fd_array_[MAX_FD];
-
-  
+  timer_tick::TimerQueue client_timers_queue_;  // client timer queue
+  timer_tick::Timer* client_fd_array_[MAX_FD];  // client fd and its timer
 
 };
 

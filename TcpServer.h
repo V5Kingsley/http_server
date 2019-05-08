@@ -1,3 +1,13 @@
+/**
+ * @file TcpServer.h
+ * @author Kingsley
+ * @brief Pure Virtual Class
+ * @version 0.1
+ * @date 2019-05-08
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #ifndef TCP_SERVER_H_
 #define TCP_SERVER_H_
 
