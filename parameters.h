@@ -15,6 +15,14 @@
 #include <vector>
 #include <string>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/property_tree/exceptions.hpp>
+
+using boost::property_tree::ptree;
+using boost::property_tree::ptree_error;
+using boost::property_tree::ptree_bad_path;
+
 namespace http_server
 {
 
@@ -65,7 +73,10 @@ public:
 
   std::vector<std::string> getHttpFileLists() { return file_lists_; }
 
+
+
 private:
+  bool loadConfig();
   char CGI_root_[MAX_FILE_LINE];
   char default_file_[MAX_FILE_LINE];
   char document_root_[MAX_FILE_LINE];
@@ -76,6 +87,7 @@ private:
   int init_worker_num_;
   int max_work_num_;
   std::vector<std::string> file_lists_;
+  ptree xml_tree_;
 };
 }
 } // namespace http_server
