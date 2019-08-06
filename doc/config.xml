@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+    <http_server>
+        <listen_port value="54321"/>
+        <max_work_num value="100000"/>
+        <init_worker_num value="10"/>
+        <document_root value="doc"/>
+        <default_file value="index.html"/>
+    </http_server>
+
+</root>
