@@ -169,6 +169,8 @@ bool Parameters::loadConfig()
   {
     printf("read xml default_file: %s\n", e.what());
   }
+
+  return true;
   
 }
 
