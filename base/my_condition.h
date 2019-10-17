@@ -33,11 +33,13 @@ public:
 
   void notify()
   {
+    MutexLockGuard lg(mutex_);
     pthread_cond_signal(&pcond_);
   }
 
   void notifyAll()
   {
+    MutexLockGuard lg(mutex_);
     pthread_cond_broadcast(&pcond_);
   }
 
