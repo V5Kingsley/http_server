@@ -5,7 +5,7 @@ mkdir build
 cd build
 cmake ..
 make
-cd .. & cp build/httpserver ./
+cd .. & cp build/httpserver ./ 
 
 #运行:
 ./httpserver
